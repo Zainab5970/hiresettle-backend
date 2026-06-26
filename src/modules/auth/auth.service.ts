@@ -75,6 +75,15 @@ export class AuthService {
     return { accessToken, user };
   }
 
+  async updateProfile(userId: string, dto: any) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(dto.name !== undefined ? { name: dto.name } : {}),
+        ...(dto.company !== undefined ? { company: dto.company } : {}),
+        ...(dto.webhookUrl !== undefined ? { webhookUrl: dto.webhookUrl } : {}),
+      },
+    });
   // Backward-compatible method name
   login(dto: LoginDto): Promise<{ accessToken: string; user: any }> {
     return this.walletLogin(dto);

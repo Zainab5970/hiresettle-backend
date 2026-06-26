@@ -61,14 +61,15 @@ enum UserRole {
 // ============================================================
 
 model User {
-  id             String    @id @default(uuid())
-  stellarAddress String    @unique
-  email          String?   @unique
+  id             String         @id @default(uuid())
+  stellarAddress String         @unique
+  email          String?        @unique
   name           String?
-  company        String?   // company name (for COMPANY role users)
-  role           UserRole  @default(COMPANY)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  company        String?        // company name (for COMPANY role users)
+  role           UserRole       @default(COMPANY)
+  webhookUrl     String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   // Relations
   companyEngagements      Engagement[]             @relation("CompanyEngagements")
