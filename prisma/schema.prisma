@@ -66,10 +66,11 @@ model User {
   email          String?   @unique
   passwordHash   String?
   name           String?
-  company        String?   // company name (for COMPANY role users)
-  role           UserRole  @default(COMPANY)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  company        String?        // company name (for COMPANY role users)
+  role           UserRole       @default(COMPANY)
+  webhookUrl     String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   // Relations
   companyEngagements   Engagement[]   @relation("CompanyEngagements")

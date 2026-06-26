@@ -29,8 +29,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
-    private readonly config: ConfigService,
-  ) {}
+  ) { }
 
   generateNonce(stellarAddress: string): string {
     const nonce = `hiresettle:${stellarAddress}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
@@ -56,6 +55,8 @@ export class AuthService {
           role: dto.role,
         },
       });
+  async walletLogin(dto: LoginDto): Promise<{ accessToken: string; user: any }> {
+    const { stellarAddress, signedNonce, signature } = dto;
 
       this.logger.log(`User registered: ${email}`);
       return this.issueTokenPair(user);
@@ -76,6 +77,28 @@ export class AuthService {
 
     if (!user?.passwordHash || !(await this.verifyPassword(dto.password, user.passwordHash))) {
       throw new UnauthorizedException('Invalid email or password');
+    if (signedNonce !== stored.nonce) {
+      throw new UnauthorizedException('Signed nonce does not match the challenge.');
+    }
+
+    let sigBytes: Uint8Array;
+    try {
+      sigBytes = Uint8Array.from(Buffer.from(signature, 'base64'));
+    } catch {
+      throw new UnauthorizedException('Invalid signature encoding (expected base64).');
+    }
+
+    let keypair: Keypair;
+    try {
+      keypair = Keypair.fromPublicKey(stellarAddress);
+    } catch {
+      throw new UnauthorizedException('Invalid Stellar address.');
+    }
+
+    const msgBytes = Buffer.from(stored.nonce, 'utf8');
+    const isValid = keypair.verify(msgBytes, sigBytes);
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid signature');
     }
 
     this.logger.log(`User logged in: ${email}`);
@@ -244,4 +267,19 @@ export class AuthService {
     const { passwordHash, ...safeUser } = user;
     return safeUser;
   }
+
+  async updateProfile(userId: string, dto: any) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(dto.name !== undefined ? { name: dto.name } : {}),
+        ...(dto.company !== undefined ? { company: dto.company } : {}),
+        ...(dto.webhookUrl !== undefined ? { webhookUrl: dto.webhookUrl } : {}),
+      },
+    });
+  // Backward-compatible method name
+  login(dto: LoginDto): Promise<{ accessToken: string; user: any }> {
+    return this.walletLogin(dto);
+  }
 }
+
