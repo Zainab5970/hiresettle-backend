@@ -2,13 +2,22 @@ import { Controller, Get, Param, ParseIntPipe, UseGuards, Patch, UnprocessableEn
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { MilestonesService } from './milestones.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { UserRole } from '@prisma/client';
+import { ResolveDisputeDto } from './dto/resolve-dispute.dto';
+import { Throttle } from '@nestjs/throttler';
+import { UserJwtSubThrottlerGuard } from '../../common/guards/user-jwt-sub-throttler.guard';
 
 @ApiTags('milestones')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@UseGuards(UserJwtSubThrottlerGuard)
+@Throttle({ limit: 100, ttl: 60 })
 @Controller('engagements/:engagementId/milestones')
 export class MilestonesController {
-  constructor(private readonly milestonesService: MilestonesService) {}
+
+  constructor(private readonly milestonesService: MilestonesService) { }
 
   @Get()
   @ApiOperation({ summary: 'List all milestones for an engagement' })
@@ -34,29 +43,15 @@ export class MilestonesController {
     return this.milestonesService.getRetentionTimer(engagementId, index);
   }
 
-  @Patch(':index/confirm')
-  @ApiOperation({ summary: 'Manually confirm a milestone if conditions permit' })
-  async confirm(
+  @Post(':index/resolve')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ARBITER)
+  @ApiOperation({ summary: 'Resolve a dispute on a milestone (arbiter only)' })
+  resolveDispute(
     @Param('engagementId') engagementId: string,
     @Param('index', ParseIntPipe) index: number,
+    @Body() dto: ResolveDisputeDto,
   ) {
-    const milestone = await this.milestonesService.findOne(engagementId, index);
-    
-    if (!milestone) {
-      throw new UnprocessableEntityException('Milestone not found');
-    }
-
-    // Block manual confirmation if a RETENTION milestone is still locked before its ledger period has elapsed
-    if (milestone.type === 'RETENTION' && milestone.status === 'LOCKED') {
-      const currentLedger = await this.milestonesService.getCurrentLedgerSequence();
-
-      if (currentLedger < milestone.validAfterLedger) {
-        throw new UnprocessableEntityException(
-          'Retention period has not elapsed. This milestone cannot be manually confirmed yet.',
-        );
-      }
-    }
-
-    return this.milestonesService.confirmMilestone(engagementId, index);
+    return this.milestonesService.resolveDispute(engagementId, index, dto.approved);
   }
 }

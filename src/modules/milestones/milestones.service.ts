@@ -174,6 +174,10 @@ export class MilestonesService {
     });
   }
 
+  async resolveDispute(engagementId: string, milestoneIndex: number, approved: boolean) {
+    return this.markResolved(engagementId, milestoneIndex, approved);
+  }
+
   /**
    * Reset milestones after a replacement is requested.
    * Mirrors what the contract does on-chain: Placement → Pending,
