@@ -34,8 +34,11 @@ export class EngagementsController {
   @Roles(UserRole.COMPANY)
   @ApiOperation({ summary: 'Register a newly created on-chain engagement' })
   @ApiOperation({ summary: 'Create engagement with on-chain escrow (COMPANY only)' })
-  create(@Body() dto: CreateEngagementDto) {
-    return this.engagementsService.create(dto);
+  create(
+    @CurrentUser() user: User,
+    @Body() dto: CreateEngagementDto,
+  ) {
+    return this.engagementsService.create(user, dto);
   }
 
   /**

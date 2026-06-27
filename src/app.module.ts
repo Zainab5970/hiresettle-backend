@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, CacheModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -10,6 +10,8 @@ import { StellarModule } from './common/stellar/stellar.module';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { EngagementsModule } from './modules/engagements/engagements.module';
+import { EngagementTemplatesModule } from './modules/engagement-templates/engagement-templates.module';
+import { RecruitersModule } from './modules/recruiters/recruiters.module';
 import { MilestonesModule } from './modules/milestones/milestones.module';
 import { EventsModule } from './modules/events/events.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
@@ -21,6 +23,8 @@ import { AdminModule } from './modules/admin/admin.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
 
+    CacheModule.register({ isGlobal: true }),
+    
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -43,6 +47,7 @@ import { AdminModule } from './modules/admin/admin.module';
 
     AuthModule,
     EngagementsModule,
+    RecruitersModule,
     MilestonesModule,
     EventsModule,
     NotificationsModule,

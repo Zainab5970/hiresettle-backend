@@ -211,3 +211,21 @@ model RetentionSchedule {
   @@index([unlocked])
   @@map("retention_schedules")
 }
+
+model EngagementTemplate {
+  id               String   @id @default(uuid())
+  companyId        String
+  name             String
+  jobTitle         String
+  jobDescription   String?
+  salaryRange      String?
+  location         String?
+  milestoneConfig  Json
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  company          User     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@map("engagement_templates")
+}
