@@ -1,5 +1,5 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { EventsService } from './events.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { Throttle } from '@nestjs/throttler';
@@ -16,9 +16,11 @@ export class EventsController {
 
   @Get()
   @ApiOperation({ summary: 'List on-chain events with optional engagement filter' })
-  @ApiQuery({ name: 'engagementId', required: false })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'engagementId', required: false, description: 'Filter by engagement ID' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page' })
+  @ApiResponse({ status: 200, description: 'Events list retrieved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   findAll(
     @Query('engagementId') engagementId?: string,
     @Query('page') page?: number,
