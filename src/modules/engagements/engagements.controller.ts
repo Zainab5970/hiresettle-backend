@@ -42,6 +42,11 @@ export class EngagementsController {
   @ApiResponse({ status: 422, description: 'Validation failed' })
   create(@Body() dto: CreateEngagementDto) {
     return this.engagementsService.create(dto);
+  create(
+    @CurrentUser() user: User,
+    @Body() dto: CreateEngagementDto,
+  ) {
+    return this.engagementsService.create(user, dto);
   }
 
   /**
