@@ -35,6 +35,7 @@
     "@sentry/instrumentation-prisma": "^7.x.x",
     "@stellar/stellar-sdk": "^12.0.0",
     "axios": "^1.6.0",
+    "cache-manager": "^7.2.8",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "helmet": "^7.1.0",
